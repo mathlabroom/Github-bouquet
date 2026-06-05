@@ -1,0 +1,9 @@
+Package: enigma2-plugin-extensions-githubbouquet
+Version: 4.0.0
+Description: GitHub Bouquet Nested Downloader for Enigma2
+Section: extra
+Priority: optional
+Maintainer: mathlabroom
+Architecture: all
+Depends: enigma2
+Source: https://github.com/mathlabroom/huangseck-m3u8
