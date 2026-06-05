@@ -1,0 +1,36 @@
+#!/bin/sh
+# =======================================================================
+# ✨ GitHub 嵌套花束自选更新器 - 安装后初始化与提示脚本 (postinst)
+# =======================================================================
+
+CONFIG_DIR="/etc/enigma2"
+PLUGIN_DIR="/usr/lib/enigma2/python/Plugins/Extensions/GitHubBouquet"
+
+# 1. 安全初始化：如果用户是第一次安装，提前把自选和大小账本的空白文件准备好
+#    这样可以防止因为权限问题导致插件第一次运行写入失败
+if [ ! -f "$CONFIG_DIR/github_bouquet_checkbox.conf" ]; then
+    touch "$CONFIG_DIR/github_bouquet_checkbox.conf"
+    chmod 644 "$CONFIG_DIR/github_bouquet_checkbox.conf"
+fi
+
+if [ ! -f "$CONFIG_DIR/github_bouquet_sizes.conf" ]; then
+    touch "$CONFIG_DIR/github_bouquet_sizes.conf"
+    chmod 644 "$CONFIG_DIR/github_bouquet_sizes.conf"
+fi
+
+# 2. 华丽的终端公告：让用户在 SSH/Telnet 窗口里看到精美的专属安装成功标识
+echo ""
+echo "***************************************************"
+echo "* GitHub Bouquet Nested Downloader         *"
+echo "* *"
+echo "* by mathlabroom                   *"
+echo "***************************************************"
+echo "* >> 核心功能: 增量大小比对 / 复选框手动自选     *"
+echo "* >> 状态提示: 依赖环境配置完成，运行环境就绪!   *"
+echo "***************************************************"
+echo ""
+echo ">>> 插件已成功释放至 $PLUGIN_DIR"
+echo ">>> 为了让自选更新器菜单正常显示，请立即重启 Enigma2 界面！"
+echo ""
+
+exit 0
