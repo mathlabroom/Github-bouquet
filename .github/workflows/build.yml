@@ -1,11 +1,9 @@
-name: 自动构建 Enigma2 IPK 插件包
+name: 自动构建并推回 IPK 到仓库
 
 on:
   push:
     branches:
       - main
-    tags:
-      - 'v*'
 
 jobs:
   build:
@@ -13,15 +11,16 @@ jobs:
     steps:
       - name: 🚀 拉取最新代码
         uses: actions/checkout@v4
+        with:
+          # 必须加这个权限，否则 Actions 没法把文件写回仓库
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🛠️ 组装并清洗换行符 (防 126 错误)
         run: |
           mkdir -p ipk/CONTROL ipk/usr
-          # 精准对齐你仓库里的 ipk_build 路径
           cp -r ipk_build/CONTROL/* ipk/CONTROL/
           cp -r ipk_build/usr/* ipk/usr/
           
-          # 强行把 Windows 的 CRLF 转换为 Linux 的 LF，彻底杜绝 bad interpreter 报错
           sed -i 's/\r$//' ipk/CONTROL/postinst || true
           chmod 755 ipk/CONTROL/postinst || true
 
@@ -32,10 +31,15 @@ jobs:
           tar -czf ../data.tar.gz usr
           echo "2.0" > ../debian-binary
           cd ..
-          ar -crv enigma2-plugin-extensions-githubbouquet_all.ipk debian-binary control.tar.gz data.tar.gz
+          # ✨ 生成最新版 IPK
+          ar -crv enigma2-plugin-extensions-githubbouquet_4.0.8_all.ipk debian-binary control.tar.gz data.tar.gz
 
-      - name: 💾 保存打包成品
-        uses: actions/upload-artifact@v4
-        with:
-          name: githubbouquet-plugin-ipk
-          path: enigma2-plugin-extensions-githubbouquet_all.ipk
+      - name: 💾 自动把生成的 IPK 提交并推送到代码仓库
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 把新生成的 ipk 强行加入暂存区并提交
+          git add enigma2-plugin-extensions-githubbouquet_4.0.8_all.ipk
+          git commit -m "🤖 Actions 全自动构建: 更新 4.0.8 IPK 安装包" || echo "没有文件变化，跳过提交"
+          git push origin main
