@@ -35,27 +35,31 @@ jobs:
           echo "插件当前版本号为: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: 📦 终极缝合打包 (使用动态版本号)
+      - name: 📦 缝合打包并原地推回仓库 (一体化防止路径丢失)
         run: |
+          # 1. 记住当前的仓库根目录绝对路径
+          REPO_ROOT=$(pwd)
+          
+          # 2. 进入 ipk 子目录制作压缩包
           cd ipk
           tar -czf ../control.tar.gz -C CONTROL .
           tar -czf ../data.tar.gz usr
           echo "2.0" > ../debian-binary
-          cd ..
-          # ✨ 依旧把包生成在当前执行目录下
+          
+          # 3. 强行回到根目录进行 ar 缝合，确保 .ipk 100% 生成在根目录
+          cd $REPO_ROOT
+          rm -f enigma2-plugin-extensions-githubbouquet_*.ipk
           ar -crv "enigma2-plugin-extensions-githubbouquet_${{ env.VERSION }}_all.ipk" debian-binary control.tar.gz data.tar.gz
-
-      - name: 💾 自动清理旧 IPK 并把新 IPK 推送到代码仓库
-        run: |
+          
+          # 4. 顺手把临时打包用的垃圾文件清理干净，保持仓库纯净
+          rm -f debian-binary control.tar.gz data.tar.gz
+          rm -rf ipk
+          
+          # 5. 配置 Git 原地提交推回
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 1. 先清理掉仓库根目录下所有旧的 .ipk 文件
-          rm -f enigma2-plugin-extensions-githubbouquet_*.ipk
-          
-          # 2. ✨ 精准把上一步生成的 ipk 文件拉到根目录准备推送（此时它就在当前目录下）
+          # 强行把根目录下的新 ipk 喂给 git
           git add "enigma2-plugin-extensions-githubbouquet_${{ env.VERSION }}_all.ipk"
-          
-          # 3. 提交并推回仓库
           git commit -m "🤖 Actions 全自动构建: 更新动态版本 ${{ env.VERSION }} IPK 安装包" || echo "没有变化，跳过提交"
           git push origin main
