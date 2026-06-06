@@ -1,5 +1,5 @@
 Package: enigma2-plugin-extensions-githubbouquet
-Version: 4.0.0
+Version: 4.0.8
 Description: GitHub Bouquet Nested Downloader for Enigma2
 Section: extra
 Priority: optional
