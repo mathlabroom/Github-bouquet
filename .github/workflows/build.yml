@@ -17,7 +17,6 @@ jobs:
       - name: 🛠️ 组装并清洗换行符 (防 126 错误)
         run: |
           mkdir -p ipk/CONTROL ipk/usr
-          # ✨ 精准对齐你仓库里的 ipk_build 路径
           cp -r ipk_build/CONTROL/* ipk/CONTROL/
           cp -r ipk_build/usr/* ipk/usr/
           
