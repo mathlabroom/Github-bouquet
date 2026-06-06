@@ -1,0 +1,38 @@
+name: Build Enigma2 IPK
+
+on:
+  push:
+    tags:
+      - 'v*' # 当你提交类似 v4.0.8 的标签时触发自动打包
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Pack IPK
+        run: |
+          mkdir -p ipk/CONTROL ipk/usr
+          # 把你的代码和控制文件搬运到虚拟打包工场
+          cp -r CONTROL/* ipk/CONTROL/
+          cp -r usr/* ipk/usr/
+          
+          # 强行清洗 Windows 换行符（这下在 Windows 上提交也不怕 126 报错了！）
+          sed -i 's/\r$//' ipk/CONTROL/postinst || true
+          chmod 755 ipk/CONTROL/postinst || true
+          
+          # 核心打包逻辑
+          cd ipk
+          tar -czf ../control.tar.gz -C CONTROL .
+          tar -czf ../data.tar.gz usr
+          echo "2.0" > ../debian-binary
+          cd ..
+          ar -crv enigma2-plugin-extensions-githubbouquet.ipk debian-binary control.tar.gz data.tar.gz
+
+      - name: Upload IPK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-bouquet-ipk
+          path: enigma2-plugin-extensions-githubbouquet.ipk
